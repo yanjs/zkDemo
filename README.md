@@ -12,3 +12,11 @@ npx hardhat node
 npx hardhat run scripts/deploy.ts
 ```
 # zkDemo
+
+```
+secret // secret
+amount // secret
+note_l := hash(secret, 1) // medium secret
+note_id := hash(note_l, amount) // public
+nullifier := hash(secret, 0)
+```

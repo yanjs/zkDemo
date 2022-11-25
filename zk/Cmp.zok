@@ -10,10 +10,10 @@ def cmp(\
         res = if locked {
             res
         } else {
-            if a[7 - i] < b[7 - i] {
+            if a[i] < b[i] {
                 -1
             } else {
-                if a[7 - i] > b[7 - i] {
+                if a[i] > b[i] {
                     1
                 } else {
                     0
@@ -23,7 +23,7 @@ def cmp(\
         locked = if locked {
             locked
         } else {
-            if a[7 - i] != b[7 - i] {
+            if a[i] != b[i] {
                 true
             } else {
                 false

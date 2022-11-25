@@ -5,7 +5,8 @@ def add(\
 ) -> u32[8] {
     u32 mut carry = 0;
     u32[8] mut res = [0,0,0,0,0,0,0,0];
-    for u32 i in 0..8 {
+    for u32 idx in 0..8 {
+        u32 i = 7 - idx;
         u32 temp = a[i] + b[i];
         res[i] = temp + carry;
         carry = if temp < a[i] || temp < b[i] {
