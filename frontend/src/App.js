@@ -87,6 +87,9 @@ function App() {
     e.preventDefault();
     const n1 = parseInt(e.target["n1"].value);
     const n2 = parseInt(e.target["n2"].value);
+    if (!myNotes[n1] || !myNotes[n2]) {
+      alert("nonce does not exist");
+    }
     const amt1 = myNotes[n1].amt;
     const amt2 = myNotes[n2].amt;
     const n1Keys = calcAllKeys(mainSecret, n1);
@@ -110,6 +113,8 @@ function App() {
         nextKeys.encKey
       );
       document.getElementById("commandsHint").innerText = cmd;
+      document.getElementById("resultHint").innerText =
+        "And then copy contents from ./zk_latest/Merge.proof.json to the text area above and submit again";
     } else {
       const proofObject = JSON.parse(proofJSON);
       const proof = {
@@ -182,6 +187,8 @@ function App() {
         [toUint256Hex(srcAmt - amt), toUint256Hex(amt)]
       );
       document.getElementById("commandsHint").innerText = cmd;
+      document.getElementById("resultHint").innerText =
+        "And then copy contents from ./zk_latest/Split.proof.json to the text area above and submit again";
     } else {
       const proofObject = JSON.parse(proofJSON);
       const proof = {
@@ -316,20 +323,50 @@ function App() {
       </div>
       <form className="border gap" onSubmit={handleMerge}>
         <div>Merge Two Notes</div>
-        <input placeholder="source note nonce 1" type="input" name="n1" />
+        <input
+          placeholder="source note nonce 1"
+          type="input"
+          name="n1"
+          pattern="\d+"
+          required
+        />
         <br />
-        <input placeholder="source note nonce 2" type="input" name="n2" />
+        <input
+          placeholder="source note nonce 2"
+          type="input"
+          name="n2"
+          pattern="\d+"
+          required
+        />
         <br />
         <input type="submit" />
         <textarea placeholder="proof" name="proof" />
       </form>
       <form className="border gap" onSubmit={handleSplit}>
         <div>Transfer</div>
-        <input placeholder="source note nonce" type="input" name="n1" />
+        <input
+          placeholder="source note nonce"
+          type="input"
+          name="n1"
+          pattern="\d+"
+          required
+        />
         <br />
-        <input placeholder="amount" type="number" name="amt" />
+        <input
+          placeholder="amount"
+          type="number"
+          name="amt"
+          pattern="\d+"
+          required
+        />
         <br />
-        <input placeholder="destination encKey" type="input" name="k1" />
+        <input
+          placeholder="destination encKey"
+          type="input"
+          name="k1"
+          pattern="[a-fA-F0-9]{64}"
+          required
+        />
         <br />
         <input type="submit" />
         <textarea placeholder="proof" name="proof" />
@@ -338,6 +375,7 @@ function App() {
         <div>Commands to Run</div>
         <div className="gap">
           <tt id="commandsHint">...</tt>
+          <div id="resultHint"></div>
         </div>
       </div>
     </div>
