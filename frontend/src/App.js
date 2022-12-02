@@ -73,7 +73,6 @@ function App() {
     e.preventDefault();
     const n1 = parseInt(e.target["n1"].value);
     const n2 = parseInt(e.target["n2"].value);
-    console.log(myNotes);
     const amt1 = myNotes[n1].amt;
     const amt2 = myNotes[n2].amt;
     const n1Keys = calcAllKeys(mainSecret, n1);
@@ -268,14 +267,16 @@ function App() {
   return (
     <div className="App">
       <div>Hello, {address}</div>
-      <div>Your main secret is {mainSecret}</div>
+      <div>Your main secret is
+        <input value={mainSecret}></input>
+      </div>
       <div>Your next nonce is {nextNonce}</div>
       <div>
-        Your next enc_key is{" "}
+        Your next encKey is{" "}
         {mainSecret ? calcAllKeys(mainSecret, nextNonce).encKey : null}
       </div>
       <div>
-        Your next note_id is{" "}
+        Your next noteId is{" "}
         {mainSecret ? calcAllKeys(mainSecret, nextNonce).noteId : null}
       </div>
       <form className="border gap" onSubmit={handleCreateNote}>
@@ -313,7 +314,7 @@ function App() {
         <br />
         <input placeholder="amount" type="number" name="amt" />
         <br />
-        <input placeholder="destination enc_key" type="input" name="k1" />
+        <input placeholder="destination encKey" type="input" name="k1" />
         <br />
         <input type="submit" />
         <textarea placeholder="proof" name="proof" />
@@ -321,7 +322,7 @@ function App() {
       <div className="border gap">
         <div>Commands to Run</div>
         <div className="gap">
-          <tt id="commandsHint">123</tt>
+          <tt id="commandsHint">...</tt>
         </div>
       </div>
     </div>
