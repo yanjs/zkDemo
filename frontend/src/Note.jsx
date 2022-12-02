@@ -5,7 +5,7 @@ const Note = (props) => {
       <div>nonce = {nonce}</div>
       <div>isUsed = {isUsed.toString()}</div>
       <div>id = {noteId}</div>
-      <div>amount = {parseInt(amt)}</div>
+      <div>amount = {parseInt(amt, 16)}</div>
     </div>
   );
 };
