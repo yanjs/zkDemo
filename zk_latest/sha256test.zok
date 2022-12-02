@@ -1,0 +1,12 @@
+import "hashes/sha256/512bitPadded" as sha256;
+
+def main(\
+    u32[8] x,\
+    u32[8] y\
+) -> u32[8] {
+    u32[8] exp_note_id = sha256(x, y);
+
+    log("sha={}", exp_note_id);
+
+    return exp_note_id;
+}

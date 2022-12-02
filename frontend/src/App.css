@@ -1,0 +1,12 @@
+.border {
+  border-style: solid;
+}
+
+form > * {
+  margin: 2px;
+}
+
+.gap {
+  margin: 2px;
+  padding: 2px;
+}

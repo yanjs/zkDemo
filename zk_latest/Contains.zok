@@ -1,0 +1,18 @@
+import "hashes/sha256/512bitPadded" as sha256;
+from "./Config" import N_MIX;
+
+def contains_v(\
+    u32[N_MIX][8] keys,\
+    u32[N_MIX][8] values,\
+    u32[8] key,\
+    u32[8] value\
+) -> bool {
+    // assert set contains elem
+    bool mut any_found = false;
+    for u32 i in 0..N_MIX {
+        any_found = if key == keys[i] && value == values[i] {
+            true
+        } else { any_found };
+    }
+    return any_found;
+}

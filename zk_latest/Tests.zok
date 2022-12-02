@@ -1,0 +1,23 @@
+from "./Add" import add;
+from "./Cmp" import cmp;
+def main() {
+    u32[8] zero = [0;8];
+    u32[8] num = [0,0,0,0,0,0,0,42];
+    u32[8] num2 = [0,0,0,0,0,0,1,41];
+    u32[8] num3 = [0,0,0,0,0,0,1,83];
+    u32[8] num4 = [0,0,0,0,0,0,0,0xFFFFFFFF];
+    u32[8] num5 = [0xFFFFFFFF;8];
+    assert(cmp(zero, zero) == 0);
+    assert(cmp(num, num) == 0);
+    assert(cmp(num, zero) == 1);
+    assert(cmp(zero, num) == -1);
+
+    assert(cmp(num2, num) == 1);
+    assert(cmp(num, num2) == -1);
+
+    assert(add(num, num2) == num3);
+    assert(add(num, num4) == num2);
+    // must fail: assert(add(num, num5) == num2);
+
+    return;
+}

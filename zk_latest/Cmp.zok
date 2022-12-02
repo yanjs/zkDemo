@@ -1,0 +1,35 @@
+
+// return -1 if a < b, 0 if a == b, 1 if a > b
+def cmp(\
+    u32[8] a,\
+    u32[8] b\
+) -> u32 {
+    u32 mut res = 0;
+    bool mut locked = false;
+    for u32 i in 0..8 {
+        res = if locked {
+            res
+        } else {
+            if a[i] < b[i] {
+                -1
+            } else {
+                if a[i] > b[i] {
+                    1
+                } else {
+                    0
+                }
+            }
+        };
+        locked = if locked {
+            locked
+        } else {
+            if a[i] != b[i] {
+                true
+            } else {
+                false
+            }
+        };
+    }
+
+    return res;
+}

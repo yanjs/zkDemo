@@ -1,0 +1,65 @@
+import "hashes/sha256/512bitPadded" as sha256;
+from "./Add" import add;
+from "./Cmp" import cmp;
+from "./Config" import N_MIX;
+from "./Contains" import contains_v;
+from "./Xor" import xor;
+
+const u32 N_MERGE = 2;
+
+/*
+private   secret
+public    nullifier := hash(secret, 0)
+protected enc_key := hash(secret, 1)
+public    note_id := hash(enc_key, 0)
+private   amt
+public    encrypted_amt := amt ^ enc_key
+*/
+
+def main(\
+    u32[N_MERGE][8] nullifiers, /* of input */ \
+    u32[N_MIX][8] mixed_note_ids, /* input */ \
+    u32[N_MIX][8] mixed_enc_amts, /* input */ \
+    u32[8] new_note_id, /* output */ \
+    u32[8] enc_amt, /* output */ \
+    private u32[N_MERGE][8] secrets, /* input */ \
+    private u32[N_MERGE][8] note_ids, /* input */ \
+    private u32[N_MERGE][8] amts, /* input */ \
+    private u32[8] enc_key /* output */ \
+) {
+    u32[8] zero = [0;8];
+    u32[8] one = [0,0,0,0,0,0,0,1];
+    u32[N_MERGE][8] mut enc_keys = [[0;8];N_MERGE];
+    for u32 i in 0..N_MERGE {
+        enc_keys[i] = sha256(secrets[i], one);
+    }
+
+    // assert note_id in mixed_note_ids
+    for u32 i in 0..N_MERGE {
+        assert(contains_v(mixed_note_ids, mixed_enc_amts, note_ids[i], xor(enc_keys[i], amts[i])));
+    }
+
+    // assert note_id == hash(hash(secret, 1))
+    for u32 i in 0..N_MERGE {
+        u32[8] exp_note_id = sha256(enc_keys[i], zero);
+        assert(exp_note_id == note_ids[i]);
+    }
+
+    // assert sum(...) = new amt
+    u32[8] mut sum = [0;8];
+    for u32 i in 0..N_MERGE {
+        sum = add(sum, amts[i]);
+    }
+
+    // assert nullifier == sha256(secret, 0)
+    for u32 i in 0..N_MERGE {
+        u32[8] exp_note_nullifier = sha256(secrets[i], zero);
+        assert(exp_note_nullifier == nullifiers[i]);
+    }
+
+    // assert new_note_id = sha256(enc_key, 0)
+    u32[8] exp_new_note_id = sha256(enc_key, zero);
+    assert(new_note_id == exp_new_note_id);
+
+    return;
+}

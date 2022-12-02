@@ -1,0 +1,26 @@
+
+def add(\
+    u32[8] a,\
+    u32[8] b\
+) -> u32[8] {
+    u32 mut carry = 0;
+    u32[8] mut res = [0,0,0,0,0,0,0,0];
+    for u32 idx in 0..8 {
+        u32 i = 7 - idx;
+        u32 temp = a[i] + b[i];
+        res[i] = temp + carry;
+        carry = if temp < a[i] || temp < b[i] {
+            1
+        } else {
+            if carry == 1 && res[i] == 0 {
+                1
+            } else {
+                0
+            }
+        };
+    }
+    // No overflow allowed
+    assert(carry == 0);
+
+    return res;
+}

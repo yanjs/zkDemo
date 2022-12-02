@@ -8,22 +8,26 @@ contract ZKDemo {
     uint public constant N_MIX = 3;
     uint public constant N_MERGE = 2;
     uint public constant N_SPLIT = 2;
-    mapping(uint => bool) public notes;
+    // notes to encrypted amount
+    mapping(uint => uint) public notes;
     // true for existence, false (default) for non-existence.
     mapping(uint => bool) public nullifiers;
-    // true for existence, false (default) for non-existence.
+    MergeVerifier public mv;
+    SplitVerifier public sv;
 
     event CreateNote(uint indexed noteId);
     event UseNullifier(uint indexed nullifierId);
 
-    constructor() {
-        notes[0] = true;
+    constructor(MergeVerifier _mv, SplitVerifier _sv) {
+        notes[0] = 1;
+        mv = _mv;
+        sv = _sv;
     }
 
     // For debug purposes, these functions are public
-    function createNote(uint noteId) public {
-        require(!notes[noteId], "note exists");
-        notes[noteId] = true;
+    function createNote(uint noteId, uint enc_amt) public {
+        require(notes[noteId] == 0, "note exists");
+        notes[noteId] = enc_amt;
         emit CreateNote(noteId);
     }
 
@@ -41,93 +45,131 @@ contract ZKDemo {
         MergeVerifier.Proof memory proof,
         uint[N_MERGE] memory _nullifiers,
         uint[N_MIX] memory mixed_note_ids,
-        uint new_note_id
+        uint[N_MIX] memory mixed_enc_amts,
+        uint new_note_id,
+        uint enc_amt
     ) public {
         // Check existence of notes and nullifiers
         for (uint i = 0; i < N_MERGE; i++) {
             require(!nullifiers[_nullifiers[i]], "nullifier is used");
         }
+        require(notes[new_note_id] == 0, "new note should not exist");
         for (uint i = 0; i < N_MIX; i++) {
-            require(notes[mixed_note_ids[i]], "note should exist");
+            require(
+                mixed_note_ids[i] == 0 ||
+                    notes[mixed_note_ids[i]] == mixed_enc_amts[i],
+                "The amount of this note is not correct"
+            );
         }
-        require(notes[new_note_id], "new note should not exist");
 
         // Fill input parameters
-        uint[48] memory input;
+        uint[80] memory input;
+        uint ofs = 0;
         for (uint j = 0; j < N_MERGE; j++) {
-            uint ofs = j * 8;
             for (uint i = 0; i < 8; i++) {
-                input[ofs + i] =
-                    getNthUint32(_nullifiers[j], i);
+                input[ofs + i] = getNthUint32(_nullifiers[j], i);
             }
+            ofs += 8;
         }
         for (uint j = 0; j < N_MIX; j++) {
-            uint ofs = j * 8 + N_MERGE * 8;
             for (uint i = 0; i < 8; i++) {
-                input[ofs + i] =
-                    getNthUint32(mixed_note_ids[j], i);
+                input[ofs + i] = getNthUint32(mixed_note_ids[j], i);
             }
+            ofs += 8;
+        }
+        for (uint j = 0; j < N_MIX; j++) {
+            for (uint i = 0; i < 8; i++) {
+                input[ofs + i] = getNthUint32(mixed_enc_amts[j], i);
+            }
+            ofs += 8;
         }
         for (uint i = 0; i < 8; i++) {
-            input[N_MERGE * 8 + N_MIX * 8 + i] =
-                getNthUint32(new_note_id, i);
+            input[ofs + i] = getNthUint32(new_note_id, i);
         }
+        ofs += 8;
+        for (uint i = 0; i < 8; i++) {
+            input[ofs + i] = getNthUint32(enc_amt, i);
+        }
+        ofs += 8;
+        require(ofs == 80, "This contract is corrupted");
 
         // zk proof
-        MergeVerifier mv = new MergeVerifier();
         require(mv.verifyTx(proof, input), "zk proof failed");
 
         // write to blockchain
         for (uint i = 0; i < N_MERGE; i++) {
             useNullifier(_nullifiers[i]);
         }
-        createNote(new_note_id);
+        createNote(new_note_id, enc_amt);
     }
 
     function splitNotes(
         SplitVerifier.Proof memory proof,
         uint nullifier,
         uint[N_MIX] memory mixed_note_ids,
-        uint[N_SPLIT] memory new_note_ids
+        uint[N_MIX] memory mixed_enc_amts,
+        uint[N_SPLIT] memory new_note_ids,
+        uint[N_SPLIT] memory new_enc_amts
     ) public {
         // Check existence of notes and nullifiers
         require(!nullifiers[nullifier], "nullifier is used");
         for (uint i = 0; i < N_MIX; i++) {
-            require(notes[mixed_note_ids[i]], "note should exist");
+            require(
+                mixed_note_ids[i] == 0 || notes[mixed_note_ids[i]] > 0,
+                "note should exist"
+            );
         }
         for (uint i = 0; i < N_SPLIT; i++) {
-            require(!notes[new_note_ids[i]], "note should not exist");
+            require(notes[new_note_ids[i]] == 0, "note should not exist");
+        }
+        for (uint i = 0; i < N_MIX; i++) {
+            require(
+                mixed_note_ids[i] == 0 ||
+                    notes[mixed_note_ids[i]] == mixed_enc_amts[i],
+                "The amount of this note is not correct"
+            );
         }
 
         // Fill input parameters
-        uint[48] memory input;
+        uint[88] memory input;
+        uint ofs = 0;
         for (uint i = 0; i < 8; i++) {
-            input[i] =
-                getNthUint32(nullifier, i);
+            input[i] = getNthUint32(nullifier, i);
+        }
+        ofs += 8;
+        for (uint j = 0; j < N_MIX; j++) {
+            for (uint i = 0; i < 8; i++) {
+                input[ofs + i] = getNthUint32(mixed_note_ids[j], i);
+            }
+            ofs += 8;
         }
         for (uint j = 0; j < N_MIX; j++) {
-            uint ofs = j * 8 + 8;
             for (uint i = 0; i < 8; i++) {
-                input[ofs + i] =
-                    getNthUint32(mixed_note_ids[j], i);
+                input[ofs + i] = getNthUint32(mixed_enc_amts[j], i);
             }
+            ofs += 8;
         }
         for (uint j = 0; j < N_SPLIT; j++) {
-            uint ofs = j * 8 + 8 + 8 * N_MIX;
             for (uint i = 0; i < 8; i++) {
-                input[ofs + i] =
-                    getNthUint32(new_note_ids[j], i);
+                input[ofs + i] = getNthUint32(new_note_ids[j], i);
             }
+            ofs += 8;
         }
+        for (uint j = 0; j < N_SPLIT; j++) {
+            for (uint i = 0; i < 8; i++) {
+                input[ofs + i] = getNthUint32(new_enc_amts[j], i);
+            }
+            ofs += 8;
+        }
+        require(ofs == 88, "This contract is corrupted");
 
         // zk proof
-        SplitVerifier mv = new SplitVerifier();
-        require(mv.verifyTx(proof, input), "zk proof failed");
+        require(sv.verifyTx(proof, input), "zk proof failed");
 
         // write to blockchain
         useNullifier(nullifier);
         for (uint i = 0; i < N_SPLIT; i++) {
-            createNote(new_note_ids[i]);
+            createNote(new_note_ids[i], new_enc_amts[i]);
         }
     }
 }

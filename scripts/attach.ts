@@ -1,11 +1,9 @@
 import { ethers } from "hardhat";
 import { SplitVerifier } from "../typechain-types";
-import { initialize } from "zokrates-js";
-import crypto from "crypto";
 
 const attach = async () => {
   const ZKDemo = await ethers.getContractFactory("ZKDemo");
-  const zkDemo = ZKDemo.attach("0x5fbdb2315678afecb367f032d93f642f64180aa3");
+  const zkDemo = ZKDemo.attach("0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0");
 
   console.log(`Attached to ${zkDemo.address}`);
   return zkDemo;
@@ -13,24 +11,25 @@ const attach = async () => {
 
 async function main() {
   const zkDemo = await attach();
+  await zkDemo.createNote("0xce1b3f82c8944134c83fd1bd1525bd9fb24b450f0a563931ed2dfbd024ff6a72", "0x44265540c3437d1178c0acfddf0813fe36b9176982c636f8dd782b172aad5db7")
   const proof: SplitVerifier.ProofStruct = {
     a: {
-      X: "0x2bdd901fea0faafcf085d617c2594691ed14c1d9f85af3ebdf2215b3eee3dd8f",
-      Y: "0x05337c3cb4647d061dfa80afb94adc0f338f5eb2dbb4c477d451400d594a6208",
+      X: "0x03685b27faf479fbca6a3cc7ccd14dc8e18647f036b9bd75667284a8c2205b75",
+      Y: "0x0b4990e12ca1cf22b485f9a185ec2e2955454b5dc8442f9e6929acabf5e5a9bb",
     },
     b: {
       X: [
-        "0x162146b2f77f7fad3b3a3ef032fa3d0e551d5534afd0c5c30339e8ca767353a4",
-        "0x20c9a7e9692f22957b87254282e62c9b9b8c25ab2fe5bd2060e42c425cd3a468"
+        "0x00c323250051b7c99807afaf8e7c086d2853a3e84864d97bc155f4e9c6357f5b",
+        "0x09978c5e2000b4ce967b39914fa16820afe66bd1712b2dc9fab26a6269c5181a"
       ],
       Y: [
-        "0x005020d82e3e39f3ff3093f8218c501d362df76fcbbe7a7988ddcfdbd3181419",
-        "0x2290142f4b5a3446279cfac13b179513e9df3f196117c7d5cf08cda60496700e"
+        "0x293332475f0ff8bf351bc93e168723e36d451895b5b25b20987d0310f6b21aa6",
+        "0x10f594d0bdd1d756173109fc95020d9419ef2086b32e2395ca3873dcec638f18"
       ],
     },
     c: {
-      X: "0x17cb2631b3377ee6af16de0f84b7a94eba8151685bad3fd86e06697ecb930c70",
-      Y: "0x28bcdc7c592af44a5871b6429a7cee50c0be504460b4f843187d4f4e774a4b00",
+      X: "0x026d8208560da5324eed9c48c159428fc35c604cd4b1749b37e90def595f12a8",
+      Y: "0x1fe43bc6648ba850042398d45422604ba4149724467dc6f9aa107ec3b561820b",
     },
   };
   const nullifier = ethers.BigNumber.from(
@@ -40,20 +39,36 @@ async function main() {
   const mixed_note_ids: [BN, BN, BN] =
     [
       ethers.BigNumber.from(
-        "0xbf387d2095b532863cef8117d583eafbe9f8e2bbc92ae710c6efa7d329e00bce"
+        "0xce1b3f82c8944134c83fd1bd1525bd9fb24b450f0a563931ed2dfbd024ff6a72"
       ),
       ethers.BigNumber.from("0"),
       ethers.BigNumber.from("0"),
     ];
+  const mixed_amts: [BN, BN, BN] =
+  [
+    ethers.BigNumber.from(
+      "0x44265540c3437d1178c0acfddf0813fe36b9176982c636f8dd782b172aad5db7"
+    ),
+    ethers.BigNumber.from("0"),
+    ethers.BigNumber.from("0"),
+  ];
   const new_note_ids: [BN, BN] = [
     ethers.BigNumber.from(
-      "0x6c3627b97827dd35a91f9953746dee5790709eca44399333e1252a48921385cc"
+      "0x37027392efbd1c3f1e0d12d8dd2028986521f03c4816774eb45c3af653bae3d8"
     ),
     ethers.BigNumber.from(
-      "0x1ea6e37432e1b08fdc88b369f44cc140f87fbf8e09b84366a1e7fb33d7c11ca5"
+      "0xf7ae27748230ac48433baf1a57810205ba0408bd07eeeb5962f2a01814e88223"
     ),
   ];
-  await zkDemo.splitNotes(proof, nullifier, mixed_note_ids, new_note_ids);
+  const new_amts: [BN, BN] = [
+    ethers.BigNumber.from(
+      "0x5eb7f6b433a40409b0f0c43218ecf3405b9e5fbb2edfe72e097492267c3a3726"
+    ),
+    ethers.BigNumber.from(
+      "0x58cc17ad2b673c58198b9c16420192bd4db3828d3856fedf3857ddc965bfb933"
+    ),
+  ];
+  await zkDemo.splitNotes(proof, nullifier, mixed_note_ids, mixed_amts, new_note_ids, new_amts);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

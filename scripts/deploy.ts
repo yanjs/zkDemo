@@ -1,19 +1,24 @@
 import { ethers } from "hardhat";
 
 const deploy = async () => {
+  const MV = await ethers.getContractFactory("MergeVerifier");
+  const SV = await ethers.getContractFactory("SplitVerifier");
   const ZKDemo = await ethers.getContractFactory("ZKDemo");
-  const zkDemo = await ZKDemo.deploy();
+  const mv = await MV.deploy();
+  const sv = await SV.deploy();
+  const zkDemo = await ZKDemo.deploy(
+    mv.address,
+    sv.address,
+  );
   await zkDemo.deployed();
 
   console.log(`Deployed to ${zkDemo.address}`);
   return zkDemo;
-}
+};
 
 async function main() {
   const zkDemo = await deploy();
-  await zkDemo.createNote(ethers.BigNumber.from(
-    "0xbf387d2095b532863cef8117d583eafbe9f8e2bbc92ae710c6efa7d329e00bce"));
-  console.log("note created");
+  console.log("contract deployed");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

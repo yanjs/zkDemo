@@ -1,0 +1,11 @@
+
+def xor(\
+    u32[8] a,\
+    u32[8] b\
+) -> u32[8] {
+    u32[8] mut output = [0;8];
+    for u32 i in 0..8 {
+        output[i] = a[i] ^ b[i];
+    }
+    return output;
+}
