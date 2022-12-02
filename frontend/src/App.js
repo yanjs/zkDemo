@@ -45,10 +45,24 @@ function App() {
       );
   };
 
+  const loadMainSecret = () => {
+    const secret = localStorage.getItem("mainSecret");
+    if (!secret || !secret.match(/^[a-fA-F\d]{64}$/)) {
+      const randn = new Uint8Array(32);
+      crypto.getRandomValues(randn);
+      const hexRandn = [...randn]
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      localStorage.setItem("mainSecret", hexRandn);
+      return hexRandn;
+    }
+    return secret;
+  };
+
   const [zkDemo, setZKDemo] = useState(null);
   const [provider, setProvider] = useState(null);
   const [address, setAddress] = useState(null);
-  const [mainSecret, setMainSecret] = useState("");
+  const [mainSecret, setMainSecret] = useState(loadMainSecret());
   const [nextNonce, setNextNonce] = useState(0);
   const [myNotes, setMyNotes] = useState([]);
 
@@ -210,8 +224,14 @@ function App() {
         .catch((e) => {
           console.log("Error ", e);
         });
-
     }
+  };
+
+  const handleChangeMainSecret = (e) => {
+    e.preventDefault();
+    const value = e.target["mainSecret"].value;
+    setMainSecret(value);
+    localStorage.setItem("mainSecret", value);
   };
 
   useEffect(() => {
@@ -221,20 +241,6 @@ function App() {
       setZKDemo(new ethers.Contract(zkDemoAddr, abi.abi, s));
     });
   }, []);
-
-  useEffect(() => {
-    provider?.listAccounts().then((d) => {
-      const cutAddr = d[0].substring(2);
-      setAddress(cutAddr);
-
-      // MainSecret should be calculated from the private key,
-      // but we can't get the private key.
-      const hashAddr = hash(cutAddr);
-      const hashAddr2 = hash(hashAddr + hashAddr);
-
-      setMainSecret(sha256(d[0]).toString());
-    });
-  }, [provider]);
 
   useEffect(() => {
     if (mainSecret === "") return;
@@ -247,7 +253,6 @@ function App() {
         const valueStr = value.toHexString().substring(2);
         if (value.eq("0x0")) break;
         const isUsed = await zkDemo?.nullifiers("0x" + keys.nullifier);
-        console.log(currNonce, keys.noteId, value, valueStr, isUsed);
         notes.push({
           noteId: keys.noteId,
           nonce: currNonce,
@@ -267,8 +272,18 @@ function App() {
   return (
     <div className="App">
       <div>Hello, {address}</div>
-      <div>Your main secret is
-        <input value={mainSecret}></input>
+      <div>
+        Your 256-bit hex main secret is
+        <form onSubmit={handleChangeMainSecret}>
+          <input
+            type="text"
+            defaultValue={mainSecret}
+            className="half-width"
+            pattern="[a-fA-F\d]{64}"
+            name="mainSecret"
+          />
+          <input type="submit" value="Set main secret" />
+        </form>
       </div>
       <div>Your next nonce is {nextNonce}</div>
       <div>

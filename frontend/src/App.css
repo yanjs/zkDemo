@@ -10,3 +10,7 @@ form > * {
   margin: 2px;
   padding: 2px;
 }
+
+.half-width {
+  width: 50%;
+}
