@@ -24,15 +24,17 @@ npm install
 npm start
 ```
 
-### setup zokrates environment
+### setup zokrates environment (docker shell)
 
 ```sh
 docker run -v ./zk_latest:/home/zo -ti zokrates/zokrates /bin/bash
+cd /home/zo
 ```
+
+#### Run the following only once
 
 Inside container shell
 ```
-cd /home/zo
 zokrates compile -i Split.zok -o Split.out -s Split.abi.json
 zokrates compile -i Merge.zok -o Merge.out -s Merge.abi.json
 ```

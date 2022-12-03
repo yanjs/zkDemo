@@ -372,7 +372,7 @@ function App() {
         <textarea placeholder="proof" name="proof" />
       </form>
       <div className="border gap">
-        <div>Commands to Run</div>
+        <div>Commands to Run inside the Docker Shell</div>
         <div className="gap">
           <tt id="commandsHint">...</tt>
           <div id="resultHint"></div>
